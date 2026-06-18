@@ -1,0 +1,84 @@
+# makita — docker-compose.yml
+# ============================
+# Serviços: Redis + App (main.py)
+# PostgreSQL opcional (descomente para usar)
+#
+# Para subir:
+#   cd makita/docker
+#   docker-compose up -d
+#
+# Para ver logs:
+#   docker-compose logs -f makita
+
+version: "3.9"
+
+services:
+  # ── Redis (persistência AOF+RDB) ──────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: makita-redis
+    restart: unless-stopped
+    command: >
+      redis-server
+        --appendonly yes
+        --appendfsync everysec
+        --save 60 1000
+        --save 300 10
+        --save 3600 1
+        --maxmemory 256mb
+        --maxmemory-policy allkeys-lru
+    volumes:
+      - redis-data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  # ── PostgreSQL (opcional — descomente para usar) ───────────────
+  # postgres:
+  #   image: postgres:16-alpine
+  #   container_name: makita-postgres
+  #   restart: unless-stopped
+  #   environment:
+  #     POSTGRES_DB: makita
+  #     POSTGRES_USER: makita
+  #     POSTGRES_PASSWORD: makita_senha_segura
+  #   volumes:
+  #     - pg-data:/var/lib/postgresql/data
+  #   ports:
+  #     - "5432:5432"
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U makita"]
+  #     interval: 10s
+  #     timeout: 3s
+  #     retries: 3
+
+  # ── App principal ──────────────────────────────────────────────
+  makita:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: makita-app
+    restart: unless-stopped
+    env_file:
+      - ../.env
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      # - DATABASE_URL=postgresql://makita:makita_senha_segura@postgres:5432/makita
+    depends_on:
+      redis:
+        condition: service_healthy
+      # postgres:
+      #   condition: service_healthy
+    volumes:
+      - makita-data:/app/data
+    ports:
+      - "8080:8080"
+
+volumes:
+  redis-data:
+  # pg-data:
+  makita-data:

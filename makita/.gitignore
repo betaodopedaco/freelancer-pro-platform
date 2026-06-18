@@ -1,0 +1,48 @@
+# ── Ambiente ─────────────────────────────────────
+.env
+*.env
+.env.*
+
+# ── Banco de dados ──────────────────────────────
+*.db
+*.db-*
+*.sqlite3
+*.sqlite
+
+# ── Chaves / certificados ──────────────────────
+*.key
+*.pem
+*.crt
+*.cert
+*.p12
+
+# ── Cookies e sessões ──────────────────────────
+*cookies*
+*Cookies*
+*cookie*.json
+*sesion*.json
+
+# ── Cache Python ────────────────────────────────
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+*.egg
+
+# ── IDE e sistema ──────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ── Logs ───────────────────────────────────────
+*.log
+
+# ── Backup local ───────────────────────────────
+backups/
