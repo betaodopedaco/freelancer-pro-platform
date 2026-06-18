@@ -4,7 +4,8 @@ services:
     env: docker
     region: ohio
     plan: free
-    dockerfilePath: ../Dockerfile
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
     healthCheckPath: /saude
     envVars:
       - key: TELEGRAM_TOKEN
