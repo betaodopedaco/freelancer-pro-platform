@@ -22,6 +22,17 @@ FALHA_TELEGRAM_LIMITE = 3
 _falhas_telegram = 0
 _ultima_falha_telegram = 0.0
 
+# Flag compartilhada para healthcheck HTTP (lida por healthcheck.py)
+_alerta_ativo = False
+
+def alerta_ativo() -> bool:
+    """Retorna True se o loop_saude detectou algum coletor morto."""
+    return _alerta_ativo
+
+def definir_alerta_ativo(v: bool) -> None:
+    global _alerta_ativo
+    _alerta_ativo = v
+
 # Coletores esperados
 COLETORES = ["facebook", "twitter", "reddit", "bluesky", "hn"]
 
@@ -119,6 +130,9 @@ async def _verificar() -> None:
         msg = f"Telegram falhou {_falhas_telegram} vezes seguidas!"
         log.critical(f"🔴 ALERTA: {msg}")
         alertas.append(msg)
+
+    # Atualizar flag global (lida pelo healthcheck HTTP para 503)
+    definir_alerta_ativo(len(alertas) > 0)
 
     # Enviar alertas no Telegram
     for alerta in alertas:

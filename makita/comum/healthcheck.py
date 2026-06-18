@@ -12,9 +12,11 @@ import os
 import time
 from http.server import HTTPServer, BaseHTTPRequestHandler
 
+from makita.comum.saude import alerta_ativo
+
 log = logging.getLogger("healthcheck")
 
-PORT = int(os.getenv("HEALTHCHECK_PORT", "8080"))
+PORT = int(os.getenv("PORT", os.getenv("HEALTHCHECK_PORT", "8080")))
 
 # Timestamps dos últimos ciclos de cada coletor
 _ultimos_ciclos: dict[str, float] = {}
@@ -35,6 +37,11 @@ class _Handler(BaseHTTPRequestHandler):
             "ciclos": {},
         }
         status_code = 200
+
+        # Se o loop_saude detectou coletores mortos → 503
+        if alerta_ativo():
+            body["status"] = "alerta_coletor_morto"
+            status_code = 503
 
         for nome, ts in _ultimos_ciclos.items():
             idle = round(agora - ts, 1)
