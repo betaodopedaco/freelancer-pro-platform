@@ -1,5 +1,5 @@
 services:
-  - type: worker
+  - type: web
     name: makita
     env: python
     region: ohio
@@ -9,6 +9,7 @@ services:
       playwright install chromium &&
       playwright install-deps chromium
     startCommand: python makita/main.py
+    healthCheckPath: /saude
     envVars:
       - key: TELEGRAM_TOKEN
         sync: false
