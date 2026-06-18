@@ -1,38 +1,36 @@
-type: worker
-name: makita
-env: python
-region: ohio
-plan: starter
-
-buildCommand: |
-  pip install -r requirements.txt &&
-  playwright install chromium &&
-  playwright install-deps chromium
-
-startCommand: python main.py
-
-envVars:
-  - key: TELEGRAM_TOKEN
-    sync: false
-  - key: TELEGRAM_CHAT_ID
-    sync: false
-  - key: ADMIN_CHAT_ID
-    sync: false
-  - key: FB_C_USER
-    sync: false
-  - key: FB_XS
-    sync: false
-  - key: FB_FR
-    sync: false
-  - key: TW_AUTH_TOKEN
-    sync: false
-  - key: TW_CT0
-    sync: false
-  - key: INVITE_CODES
-    sync: false
-  - key: REDIS_URL
-    sync: false
-  - key: DATABASE_URL
-    sync: false
-  - key: DEBUG
-    sync: false
+services:
+  - type: worker
+    name: makita
+    env: python
+    region: ohio
+    plan: starter
+    buildCommand: |
+      pip install -r requirements.txt &&
+      playwright install chromium &&
+      playwright install-deps chromium
+    startCommand: python main.py
+    envVars:
+      - key: TELEGRAM_TOKEN
+        sync: false
+      - key: TELEGRAM_CHAT_ID
+        sync: false
+      - key: ADMIN_CHAT_ID
+        sync: false
+      - key: FB_C_USER
+        sync: false
+      - key: FB_XS
+        sync: false
+      - key: FB_FR
+        sync: false
+      - key: TW_AUTH_TOKEN
+        sync: false
+      - key: TW_CT0
+        sync: false
+      - key: INVITE_CODES
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: DEBUG
+        sync: false
