@@ -1,14 +1,10 @@
 services:
   - type: web
     name: makita
-    env: python
+    env: docker
     region: ohio
     plan: free
-    buildCommand: |
-      pip install -r makita/requirements.txt &&
-      playwright install chromium &&
-      playwright install-deps chromium
-    startCommand: python makita/main.py
+    dockerfilePath: ../Dockerfile
     healthCheckPath: /saude
     envVars:
       - key: TELEGRAM_TOKEN
