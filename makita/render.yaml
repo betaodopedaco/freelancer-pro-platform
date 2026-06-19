@@ -31,6 +31,8 @@ services:
         sync: false
       - key: TW_CT0
         sync: false
+      - key: TWITTER_COOKIES_B64
+        sync: false
       - key: INVITE_CODES
         sync: false
       - key: REDIS_URL

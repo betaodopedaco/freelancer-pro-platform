@@ -2,7 +2,7 @@
 Adaptador do Twitter para o pipeline Makita.
 Implementa Playwright inline — intercepta SearchTimeline e faz DOM fallback.
 """
-import asyncio, hashlib, json, logging, os
+import asyncio, hashlib, json, logging, os, sys
 from datetime import datetime, timezone
 from playwright.async_api import async_playwright
 
@@ -10,15 +10,20 @@ from makita.comum.db import get_palavras_ativas, ja_visto
 from makita.comum.fila import publicar
 from makita.comum.modelos import SinalBruto
 
+# Adiciona raiz do projeto ao path para importar o loader centralizado
+RAIZ = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+if RAIZ not in sys.path:
+    sys.path.insert(0, RAIZ)
+
+from tofinder.coletores.twitter_cookie_loader import load_twitter_cookies
+
 log = logging.getLogger("twitter.adaptador")
 
 INTERVALO = int(os.getenv("TWITTER_POLL_INTERVAL", "1800"))
 SLEEP_ENTRE = 3
 MAX_POR_PALAVRA = 5
 
-# 4 níveis acima de makita/coletores/twitter/adaptador.py → raiz do projeto
-RAIZ = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-COOKIE_PATH = os.path.join(RAIZ, "tofinder", "twitter_cookies.json")
+COOKIE_PATH = os.path.join(RAIZ, "tofinder", "twitter_cookies.json")  # fallback legado
 
 
 async def _search_palavra(page, palavra: str) -> list[dict]:
@@ -102,8 +107,10 @@ async def _search_palavra(page, palavra: str) -> list[dict]:
 async def colect_twitter() -> None:
     log.info("Twitter adaptador iniciado (Playwright inline).")
 
-    if not os.path.exists(COOKIE_PATH):
-        log.warning(f"Twitter: cookies não encontrados em {COOKIE_PATH}. Desativando.")
+    # Usa o loader centralizado (TWITTER_COOKIES_B64 > twitter_cookies.json)
+    cookies = load_twitter_cookies()
+    if not cookies:
+        log.warning("Twitter: nenhum cookie disponível (loader centralizado falhou). Desativando.")
         return
 
     pw = await async_playwright().start()
@@ -112,9 +119,9 @@ async def colect_twitter() -> None:
         user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/125.0.0.0 Safari/537.36",
         viewport={"width": 1366, "height": 768},
     )
-    with open(COOKIE_PATH) as f:
-        await context.add_cookies(json.load(f))
-    log.info("Twitter: cookies carregados.")
+
+    await context.add_cookies(cookies)
+    log.info(f"Twitter: {len(cookies)} cookies carregados via loader centralizado.")
 
     await asyncio.sleep(5)
 
