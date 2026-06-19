@@ -36,8 +36,13 @@ class _Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         # Rota "/" → serve landing page
         if self.path == "/" or self.path == "/index.html":
+            log.info(f"Tentando servir landing page de: {LANDING_PATH}")
+            log.info(f"Arquivo existe? {LANDING_PATH.exists()}")
+            log.info(f"Caminho absoluto: {LANDING_PATH.absolute()}")
+            
             try:
                 html_content = LANDING_PATH.read_text(encoding="utf-8")
+                log.info(f"Landing page carregada com sucesso! Tamanho: {len(html_content)} bytes")
                 self.send_response(200)
                 self.send_header("Content-Type", "text/html; charset=utf-8")
                 self.end_headers()
@@ -47,7 +52,7 @@ class _Handler(BaseHTTPRequestHandler):
                 log.error(f"Erro ao servir landing page: {e}")
                 self.send_response(500)
                 self.end_headers()
-                self.wfile.write(b"Erro ao carregar landing page")
+                self.wfile.write(f"Erro ao carregar landing page: {e}".encode("utf-8"))
                 return
 
         # Rota "/saude" → health check JSON
@@ -94,6 +99,8 @@ async def loop_healthcheck() -> None:
     loop = asyncio.get_event_loop()
     server = HTTPServer(("0.0.0.0", PORT), _Handler)
     log.info(f"Healthcheck HTTP ouvindo em :{PORT}/ (landing) e :{PORT}/saude (health)")
+    log.info(f"Landing page path: {LANDING_PATH.absolute()}")
+    log.info(f"Landing page existe? {LANDING_PATH.exists()}")
 
     while True:
         loop.call_soon(server.handle_request)

@@ -26,6 +26,9 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Copiar landing page explicitamente
+COPY landing.html .
+
 # Copiar todo o projeto (makita/)
 COPY . .
 
