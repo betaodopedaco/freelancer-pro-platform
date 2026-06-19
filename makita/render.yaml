@@ -5,10 +5,10 @@ services:
     region: ohio
     plan: free
     buildCommand: |
-      pip install -r requirements.txt &&
+      pip install -r makita/requirements.txt &&
       playwright install chromium &&
       playwright install-deps chromium
-    startCommand: python main.py
+    startCommand: python makita/main.py
     healthCheckPath: /saude
     envVars:
       - key: PYTHON_VERSION
