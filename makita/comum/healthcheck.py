@@ -20,7 +20,7 @@ from makita.comum.saude import alerta_ativo
 log = logging.getLogger("healthcheck")
 
 PORT = int(os.getenv("PORT", os.getenv("HEALTHCHECK_PORT", "8080")))
-LANDING_PATH = Path(__file__).parent.parent.parent / "landing.html"
+LANDING_PATH = Path(__file__).parent.parent / "landing.html"
 
 # Timestamps dos últimos ciclos de cada coletor
 _ultimos_ciclos: dict[str, float] = {}
