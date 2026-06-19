@@ -1,7 +1,9 @@
 """
 makita/comum/healthcheck.py
 ============================
-Endpoint HTTP simples (http.server) que expõe /saude.
+Endpoint HTTP simples (http.server) que expõe:
+  - "/" → landing page (makita/landing.html)
+  - "/saude" → health check JSON
 Usado pelo Render para monitorar se o worker está vivo.
 Escuta na porta definida por HEALTHCHECK_PORT (padrão 8080).
 """
@@ -11,12 +13,14 @@ import logging
 import os
 import time
 from http.server import HTTPServer, BaseHTTPRequestHandler
+from pathlib import Path
 
 from makita.comum.saude import alerta_ativo
 
 log = logging.getLogger("healthcheck")
 
 PORT = int(os.getenv("PORT", os.getenv("HEALTHCHECK_PORT", "8080")))
+LANDING_PATH = Path(__file__).parent.parent.parent / "landing.html"
 
 # Timestamps dos últimos ciclos de cada coletor
 _ultimos_ciclos: dict[str, float] = {}
@@ -30,6 +34,23 @@ def marcar_ciclo(coletor: str) -> None:
 
 class _Handler(BaseHTTPRequestHandler):
     def do_GET(self):
+        # Rota "/" → serve landing page
+        if self.path == "/" or self.path == "/index.html":
+            try:
+                html_content = LANDING_PATH.read_text(encoding="utf-8")
+                self.send_response(200)
+                self.send_header("Content-Type", "text/html; charset=utf-8")
+                self.end_headers()
+                self.wfile.write(html_content.encode("utf-8"))
+                return
+            except Exception as e:
+                log.error(f"Erro ao servir landing page: {e}")
+                self.send_response(500)
+                self.end_headers()
+                self.wfile.write(b"Erro ao carregar landing page")
+                return
+
+        # Rota "/saude" → health check JSON
         agora = time.time()
         body = {
             "status": "ok",
@@ -72,7 +93,7 @@ async def loop_healthcheck() -> None:
 
     loop = asyncio.get_event_loop()
     server = HTTPServer(("0.0.0.0", PORT), _Handler)
-    log.info(f"Healthcheck HTTP ouvindo em :{PORT}/saude")
+    log.info(f"Healthcheck HTTP ouvindo em :{PORT}/ (landing) e :{PORT}/saude (health)")
 
     while True:
         loop.call_soon(server.handle_request)
