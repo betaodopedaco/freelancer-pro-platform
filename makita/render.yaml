@@ -6,8 +6,7 @@ services:
     plan: free
     buildCommand: |
       pip install -r makita/requirements.txt &&
-      playwright install chromium &&
-      playwright install-deps chromium
+      playwright install chromium
     startCommand: python makita/main.py
     healthCheckPath: /saude
     envVars:
