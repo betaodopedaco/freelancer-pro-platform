@@ -1,24 +1,73 @@
 """
-makita — modelos de dados
-===========================
-Objeto que trafega entre os setores: coleta → processamento → entrega.
+makita/comum/modelos.py
+========================
+Modelos de dados para o banco SQLite.
+
+Tabelas:
+- sinal: Sinais coletados dos coletores
+- usuario: Usuários cadastrados
 """
 
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from sqlalchemy import Column, Integer, String, Float, DateTime, Boolean, Text
+from sqlalchemy.sql import func
+from datetime import datetime
 from typing import Optional
 
+try:
+    from makita.comum.db import Base
+except ImportError:
+    from sqlalchemy.orm import declarative_base
+    Base = declarative_base()
 
-@dataclass
-class SinalBruto:
-    """Sinal de oportunidade bruto, antes de qualquer enriquecimento."""
 
-    plataforma: str          # ex: "facebook", "twitter", "reddit", "bluesky", "hn"
-    source_id: str           # ID único na plataforma — usado para dedup
-    texto: str               # conteúdo textual do post/tweet/comentário
-    url: str                 # link direto para o conteúdo
-    autor: str               # nome de usuário / handle
-    palavra_chave: str       # palavra que disparou a coleta
-    usuario_id: int          # ID do usuário dono da keyword (para roteamento)
-    publicado_em: str        # ISO 8601 — data de publicação original
-    valido_ate: str = ""     # ISO 8601 — janela de relevância (calculado depois)
+class Sinal(Base):
+    """Tabela de sinais coletados."""
+    __tablename__ = "sinais"
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    plataforma = Column(String(50), nullable=False, index=True)
+    tipo = Column(String(50), nullable=False)
+    titulo = Column(String(500), nullable=False)
+    descricao = Column(Text, nullable=True)
+    autor = Column(String(200), nullable=True)
+    relevancia = Column(Float, nullable=False, default=0.0, index=True)
+    timestamp = Column(DateTime, nullable=False, default=func.now(), index=True)
+    link = Column(String(500), nullable=True)
+    nicho = Column(String(50), nullable=True, index=True)
+    criado_em = Column(DateTime, nullable=False, default=func.now())
+    
+    def __repr__(self):
+        return f"<Sinal(id={self.id}, plataforma={self.plataforma}, titulo={self.titulo[:50]})>"
+
+
+class Usuario(Base):
+    """Tabela de usuários cadastrados."""
+    __tablename__ = "usuarios"
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    email = Column(String(200), unique=True, nullable=False, index=True)
+    password_hash = Column(String(255), nullable=False)
+    nome = Column(String(200), nullable=True)
+    nicho = Column(String(50), nullable=True)
+    telegram_chat_id = Column(String(100), nullable=True, unique=True)
+    telegram_username = Column(String(100), nullable=True)
+    ativo = Column(Boolean, nullable=False, default=True)
+    criado_em = Column(DateTime, nullable=False, default=func.now())
+    atualizado_em = Column(DateTime, nullable=False, default=func.now(), onupdate=func.now())
+    
+    def __repr__(self):
+        return f"<Usuario(id={self.id}, email={self.email}, nome={self.nome})>"
+    
+    def to_dict(self):
+        """Converte para dict (sem senha)."""
+        return {
+            "id": self.id,
+            "email": self.email,
+            "nome": self.nome,
+            "nicho": self.nicho,
+            "telegram_chat_id": self.telegram_chat_id,
+            "telegram_username": self.telegram_username,
+            "ativo": self.ativo,
+            "criado_em": self.criado_em.isoformat() if self.criado_em else None,
+            "atualizado_em": self.atualizado_em.isoformat() if self.atualizado_em else None,
+        }
