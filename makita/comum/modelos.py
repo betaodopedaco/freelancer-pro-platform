@@ -40,6 +40,11 @@ class Sinal(Base):
         return f"<Sinal(id={self.id}, plataforma={self.plataforma}, titulo={self.titulo[:50]})>"
 
 
+class SinalBruto(Base):
+    """Modelo para sinais brutos na fila (não é uma tabela, só para type hints)."""
+    pass
+
+
 class Usuario(Base):
     """Tabela de usuários cadastrados."""
     __tablename__ = "usuarios"
