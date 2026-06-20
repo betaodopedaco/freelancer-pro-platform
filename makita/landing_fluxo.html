@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Makita — Inteligência de Sinais em Tempo Real</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #fff;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* Header */
+        header {
+            background: #fff;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 20px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2563eb;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 30px;
+            list-style: none;
+        }
+        
+        .nav-links a {
+            color: #4b5563;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #2563eb;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .btn:hover {
+            background: #1d4ed8;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+        
+        .btn-secondary {
+            background: #fff;
+            color: #2563eb;
+            border: 2px solid #2563eb;
+        }
+        
+        .btn-secondary:hover {
+            background: #eff6ff;
+        }
+        
+        /* Hero */
+        .hero {
+            padding: 80px 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            text-align: center;
+        }
+        
+        .hero h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+            font-weight: 800;
+        }
+        
+        .hero p {
+            font-size: 20px;
+            margin-bottom: 40px;
+            opacity: 0.9;
+        }
+        
+        .hero-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+        }
+        
+        /* Prova Social */
+        .prova-social {
+            padding: 60px 0;
+            background: #f9fafb;
+        }
+        
+        .prova-social h2 {
+            text-align: center;
+            font-size: 36px;
+            margin-bottom: 50px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+        
+        .stat-card {
+            background: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .stat-number {
+            font-size: 48px;
+            font-weight: bold;
+            color: #2563eb;
+            margin-bottom: 10px;
+        }
+        
+        .stat-label {
+            color: #6b7280;
+            font-size: 16px;
+        }
+        
+        .depoimentos {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+        
+        .depoimento {
+            background: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .depoimento-texto {
+            font-style: italic;
+            margin-bottom: 20px;
+            color: #4b5563;
+        }
+        
+        .depoimento-autor {
+            font-weight: 600;
+            color: #111827;
+        }
+        
+        /* Fluxo */
+        .fluxo {
+            padding: 80px 0;
+        }
+        
+        .fluxo h2 {
+            text-align: center;
+            font-size: 36px;
+            margin-bottom: 60px;
+        }
+        
+        .fluxo-etapas {
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .etapa {
+            display: flex;
+            gap: 30px;
+            align-items: flex-start;
+        }
+        
+        .etapa-numero {
+            flex-shrink: 0;
+            width: 60px;
+            height: 60px;
+            background: #2563eb;
+            color: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .etapa-conteudo {
+            flex: 1;
+        }
+        
+        .etapa-titulo {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .etapa-descricao {
+            color: #6b7280;
+            margin-bottom: 15px;
+        }
+        
+        .etapa-features {
+            list-style: none;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .etapa-features li {
+            background: #eff6ff;
+            color: #2563eb;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+        
+        /* Preview */
+        .preview-section {
+            padding: 80px 0;
+            background: #f9fafb;
+        }
+        
+        .preview-section h2 {
+            text-align: center;
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
+        
+        .preview-section > .container > p {
+            text-align: center;
+            color: #6b7280;
+            margin-bottom: 50px;
+            font-size: 18px;
+        }
+        
+        .preview-demo {
+            background: #fff;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        
+        .preview-title {
+            font-size: 20px;
+            font-weight: 600;
+        }
+        
+        .preview-stats {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .preview-stat {
+            text-align: center;
+        }
+        
+        .preview-stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2563eb;
+        }
+        
+        .preview-stat-label {
+            font-size: 12px;
+            color: #6b7280;
+        }
+        
+        .sinais-lista {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .sinal-card {
+            background: #f9fafb;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #2563eb;
+            transition: all 0.3s;
+        }
+        
+        .sinal-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .sinal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .sinal-plataforma {
+            background: #2563eb;
+            color: #fff;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .sinal-relevancia {
+            color: #10b981;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .sinal-titulo {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #111827;
+        }
+        
+        .sinal-descricao {
+            color: #6b7280;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        
+        .sinal-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #9ca3af;
+        }
+        
+        /* CTA Final */
+        .cta-final {
+            padding: 80px 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            text-align: center;
+        }
+        
+        .cta-final h2 {
+            font-size: 42px;
+            margin-bottom: 20px;
+        }
+        
+        .cta-final p {
+            font-size: 18px;
+            margin-bottom: 40px;
+            opacity: 0.9;
+        }
+        
+        .cta-final .btn {
+            background: #fff;
+            color: #2563eb;
+            font-size: 18px;
+            padding: 16px 32px;
+        }
+        
+        .cta-final .btn:hover {
+            background: #f3f4f6;
+        }
+        
+        /* Footer */
+        footer {
+            background: #1f2937;
+            color: #9ca3af;
+            padding: 40px 0;
+            text-align: center;
+        }
+        
+        /* Animações */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .animate {
+            animation: fadeInUp 0.6s ease-out;
+        }
+        
+        /* Responsivo */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 32px;
+            }
+            
+            .hero p {
+                font-size: 16px;
+            }
+            
+            .hero-buttons {
+                flex-direction: column;
+            }
+            
+            .etapa {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+            
+            .nav-links {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <nav>
+                <div class="logo">⚡ Makita</div>
+                <ul class="nav-links">
+                    <li><a href="#como-funciona">Como Funciona</a></li>
+                    <li><a href="#preview">Preview</a></li>
+                    <li><a href="#precos">Preços</a></li>
+                </ul>
+                <a href="#cadastro" class="btn">Começar Grátis</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero -->
+    <section class="hero">
+        <div class="container">
+            <h1>Transforme Conversas em Oportunidades</h1>
+            <p>Makita monitora redes sociais em tempo real e entrega leads qualificados diretamente no seu Telegram</p>
+            <div class="hero-buttons">
+                <a href="#cadastro" class="btn">Começar Agora</a>
+                <a href="#preview" class="btn btn-secondary">Ver Demo</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Prova Social -->
+    <section class="prova-social">
+        <div class="container">
+            <h2>Resultados Reais</h2>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">12k+</div>
+                    <div class="stat-label">Sinais coletados por dia</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">847</div>
+                    <div class="stat-label">Leads entregues essa semana</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">R$ 2.3M</div>
+                    <div class="stat-label">Em deals capturados</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">98%</div>
+                    <div class="stat-label">Satisfação dos clientes</div>
+                </div>
+            </div>
+            
+            <div class="depoimentos">
+                <div class="depoimento">
+                    <p class="depoimento-texto">"Makita encontrou 12 oportunidades qualificadas na primeira semana. Fechamos 3 contratos!"</p>
+                    <p class="depoimento-autor">— Carlos Mendes, CEO na TechStart</p>
+                </div>
+                <div class="depoimento">
+                    <p class="depoimento-texto">"Economizo 20h por semana que gastava monitorando redes manualmente."</p>
+                    <p class="depoimento-autor">— Ana Costa, Marketing na Imobiliária Premium</p>
+                </div>
+                <div class="depoimento">
+                    <p class="depoimento-texto">"ROI de 15x no primeiro mês. Melhor investimento que fizemos."</p>
+                    <p class="depoimento-autor">— Pedro Santos, Fundador da E-commerce Pro</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Fluxo -->
+    <section class="fluxo" id="como-funciona">
+        <div class="container">
+            <h2>Como Funciona</h2>
+            
+            <div class="fluxo-etapas">
+                <div class="etapa">
+                    <div class="etapa-numero">1</div>
+                    <div class="etapa-conteudo">
+                        <h3 class="etapa-titulo">Cadastro Ultra Rápido</h3>
+                        <p class="etapa-descricao">Crie sua conta em 2 cliques com email ou Google</p>
+                        <ul class="etapa-features">
+                            <li>Email + senha</li>
+                            <li>Google OAuth</li>
+                            <li>Acesso imediato</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="etapa">
+                    <div class="etapa-numero">2</div>
+                    <div class="etapa-conteudo">
+                        <h3 class="etapa-titulo">Escolha de Nicho</h3>
+                        <p class="etapa-descricao">Selecione seu nicho ou crie um personalizado</p>
+                        <ul class="etapa-features">
+                            <li>🏠 Imobiliário</li>
+                            <li>☁️ SaaS</li>
+                            <li>🛒 E-commerce</li>
+                            <li>₿ Crypto</li>
+                            <li>📊 Marketing</li>
+                            <li>🚀 Startups</li>
+                            <li>🤖 IA</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="etapa">
+                    <div class="etapa-numero">3</div>
+                    <div class="etapa-conteudo">
+                        <h3 class="etapa-titulo">Configuração Guiada</h3>
+                        <p class="etapa-descricao">Wizard de 5 etapas com smart defaults</p>
+                        <ul class="etapa-features">
+                            <li>Keywords sugeridas</li>
+                            <li>Plataformas pré-selecionadas</li>
+                            <li>Frequência automática</li>
+                            <li>Zero configuração complexa</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="etapa">
+                    <div class="etapa-numero">4</div>
+                    <div class="etapa-conteudo">
+                        <h3 class="etapa-titulo">Momento Aha</h3>
+                        <p class="etapa-descricao">Veja resultados reais em menos de 1 minuto</p>
+                        <ul class="etapa-features">
+                            <li>3-4 sinais na tela</li>
+                            <li>Preview funcionando</li>
+                            <li>Feedback visual</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="etapa">
+                    <div class="etapa-numero">5</div>
+                    <div class="etapa-conteudo">
+                        <h3 class="etapa-titulo">Conectar Telegram</h3>
+                        <p class="etapa-descricao">Receba alertas em tempo real no seu Telegram</p>
+                        <ul class="etapa-features">
+                            <li>Deep link automático</li>
+                            <li>Ativação em 1 clique</li>
+                            <li>Alertas personalizados</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="etapa">
+                    <div class="etapa-numero">6</div>
+                    <div class="etapa-conteudo">
+                        <h3 class="etapa-titulo">Retenção Multicanal</h3>
+                        <p class="etapa-descricao">Gerencie tudo em um dashboard completo</p>
+                        <ul class="etapa-features">
+                            <li>Telegram = alertas</li>
+                            <li>Web = dashboard</li>
+                            <li>Checklist de progresso</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Preview -->
+    <section class="preview-section" id="preview">
+        <div class="container">
+            <h2>Veja o Momento Aha em Ação</h2>
+            <p>Assim que você se cadastra, já vemos sinais reais do seu nicho</p>
+            
+            <div class="preview-demo">
+                <div class="preview-header">
+                    <div class="preview-title">📊 Preview: SaaS</div>
+                    <div class="preview-stats">
+                        <div class="preview-stat">
+                            <div class="preview-stat-value">247</div>
+                            <div class="preview-stat-label">Total</div>
+                        </div>
+                        <div class="preview-stat">
+                            <div class="preview-stat-value">12</div>
+                            <div class="preview-stat-label">Hoje</div>
+                        </div>
+                        <div class="preview-stat">
+                            <div class="preview-stat-value">5</div>
+                            <div class="preview-stat-label">Plataformas</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="sinais-lista">
+                    <div class="sinal-card">
+                        <div class="sinal-header">
+                            <span class="sinal-plataforma">TWITTER</span>
+                            <span class="sinal-relevancia">96% relevância</span>
+                        </div>
+                        <div class="sinal-titulo">Alguém conhece uma ferramenta de automação para WhatsApp?</div>
+                        <div class="sinal-descricao">Estou buscando algo para automatizar atendimento. Preciso de integração com CRM</div>
+                        <div class="sinal-meta">
+                            <span>@empreendedor_tech</span>
+                            <span>Há 2 minutos</span>
+                        </div>
+                    </div>
+                    
+                    <div class="sinal-card">
+                        <div class="sinal-header">
+                            <span class="sinal-plataforma">REDDIT</span>
+                            <span class="sinal-relevancia">91% relevância</span>
+                        </div>
+                        <div class="sinal-titulo">Qual o melhor SaaS para gestão de projetos em 2024?</div>
+                        <div class="sinal-descricao">Nossa equipe está crescendo e precisamos de algo mais robusto que o Trello</div>
+                        <div class="sinal-meta">
+                            <span>u/startup_founder</span>
+                            <span>Há 1 hora</span>
+                        </div>
+                    </div>
+                    
+                    <div class="sinal-card">
+                        <div class="sinal-header">
+                            <span class="sinal-plataforma">HACKER NEWS</span>
+                            <span class="sinal-relevancia">85% relevância</span>
+                        </div>
+                        <div class="sinal-titulo">Show HN: Ferramenta open source para analytics</div>
+                        <div class="sinal-descricao">Acabei de lançar uma ferramenta de analytics focada em privacidade</div>
+                        <div class="sinal-meta">
+                            <span>devopensource</span>
+                            <span>Há 3 horas</span>
+                        </div>
+                    </div>
+                    
+                    <div class="sinal-card">
+                        <div class="sinal-header">
+                            <span class="sinal-plataforma">TWITTER</span>
+                            <span class="sinal-relevancia">83% relevância</span>
+                        </div>
+                        <div class="sinal-titulo">Procurando API de pagamento para SaaS</div>
+                        <div class="sinal-descricao">Preciso de uma solução com split de pagamento e assinaturas recorrentes</div>
+                        <div class="sinal-meta">
+                            <span>@cto_startup</span>
+                            <span>Há 6 horas</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Final -->
+    <section class="cta-final" id="cadastro">
+        <div class="container">
+            <h2>Pronto para Transformar Conversas em Oportunidades?</h2>
+            <p>Cadastre-se grátis e veja resultados em menos de 1 minuto</p>
+            <a href="#" class="btn" onclick="iniciarCadastro()">Começar Gratuitamente</a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 Makita. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Simulação do fluxo de cadastro
+        function iniciarCadastro() {
+            alert('Fluxo de cadastro iniciado!\n\n1. Cadastro com email/senha\n2. Escolha de nicho\n3. Wizard de configuração\n4. Momento Aha\n5. Conexão Telegram\n\n(Implementação em andamento...)');
+        }
+        
+        // Animações ao scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate');
+                }
+            });
+        }, observerOptions);
+        
+        document.querySelectorAll('.etapa, .stat-card, .depoimento, .sinal-card').forEach(el => {
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>
