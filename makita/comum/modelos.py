@@ -11,7 +11,9 @@ Tabelas:
 from sqlalchemy import Column, Integer, String, Float, DateTime, Boolean, Text
 from sqlalchemy.sql import func
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Any
+from dataclasses import dataclass, field
+from datetime import datetime as dt
 
 try:
     from makita.comum.db import Base
@@ -40,9 +42,18 @@ class Sinal(Base):
         return f"<Sinal(id={self.id}, plataforma={self.plataforma}, titulo={self.titulo[:50]})>"
 
 
-class SinalBruto(Base):
+@dataclass
+class SinalBruto:
     """Modelo para sinais brutos na fila (não é uma tabela, só para type hints)."""
-    __abstract__ = True
+    plataforma: str
+    source_id: str
+    texto: str
+    url: str
+    autor: str
+    palavra_chave: str
+    usuario_id: str
+    publicado_em: str
+    valido_ate: str
 
 
 class Usuario(Base):
