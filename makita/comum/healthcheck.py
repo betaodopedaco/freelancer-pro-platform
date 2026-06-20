@@ -15,12 +15,15 @@ import time
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from pathlib import Path
 
+# Import json no topo para evitar UnboundLocalError
+import json as _json
+
 from makita.comum.saude import alerta_ativo
 
 log = logging.getLogger("healthcheck")
 
 PORT = int(os.getenv("PORT", os.getenv("HEALTHCHECK_PORT", "8080")))
-FRONTEND_PATH = Path(__file__).parent.parent / "frontend.html"
+FRONTEND_PATH = Path(__file__).parent.parent.parent.parent / "frontend.html"
 
 # Timestamps dos últimos ciclos de cada coletor
 _ultimos_ciclos: dict[str, float] = {}
@@ -60,8 +63,7 @@ class _Handler(BaseHTTPRequestHandler):
             try:
                 content_length = int(self.headers.get('Content-Length', 0))
                 post_data = self.rfile.read(content_length)
-                import json
-                dados = json.loads(post_data.decode('utf-8'))
+                dados = _json.loads(post_data.decode('utf-8'))
                 
                 email = dados.get('email', '').strip().lower()
                 senha = dados.get('senha', '')
@@ -106,8 +108,7 @@ class _Handler(BaseHTTPRequestHandler):
             try:
                 content_length = int(self.headers.get('Content-Length', 0))
                 post_data = self.rfile.read(content_length)
-                import json
-                dados = json.loads(post_data.decode('utf-8'))
+                dados = _json.loads(post_data.decode('utf-8'))
                 
                 email = dados.get('email', '').strip().lower()
                 senha = dados.get('senha', '')
@@ -170,7 +171,7 @@ class _Handler(BaseHTTPRequestHandler):
         self.send_response(status_code)
         self.send_header("Content-Type", "application/json")
         self.end_headers()
-        self.wfile.write(json.dumps(body, indent=2).encode())
+        self.wfile.write(_json.dumps(body, indent=2).encode())
 
     def log_message(self, fmt, *args):
         # Silencia logs do HTTP server
