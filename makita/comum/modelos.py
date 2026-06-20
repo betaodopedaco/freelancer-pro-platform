@@ -42,7 +42,7 @@ class Sinal(Base):
 
 class SinalBruto(Base):
     """Modelo para sinais brutos na fila (não é uma tabela, só para type hints)."""
-    pass
+    __abstract__ = True
 
 
 class Usuario(Base):
