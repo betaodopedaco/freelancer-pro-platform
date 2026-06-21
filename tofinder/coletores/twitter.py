@@ -58,7 +58,18 @@ class _TwitterCapture:
         tweets = []
         try:
             url = f"https://twitter.com/search?q={keyword}&f=live"
-            await page.goto(url, wait_until="domcontentloaded", timeout=30000)
+            try:
+                await page.goto(url, wait_until="domcontentloaded", timeout=30000)
+            except Exception:
+                try:
+                    current_url = page.url
+                    html_preview = (await page.content())[:500]
+                    log.error(
+                        f"TIMEOUT DEBUG: url_atual={current_url} html_inicio={html_preview}"
+                    )
+                except Exception:
+                    pass
+                raise
             await asyncio.sleep(3)
             articles = await page.query_selector_all('article[data-testid="tweet"]')
             for article in articles[:limit]:
