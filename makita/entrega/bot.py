@@ -281,6 +281,8 @@ async def cmd_list(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 async def cmd_ping(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """/ping — teste de vida."""
+    chat_id = update.effective_chat.id if update.effective_chat else "unknown"
+    log.info("PING RECEBIDO de chat_id=%s", chat_id)
     await update.message.reply_text("funcionando")
 
 
@@ -310,6 +312,23 @@ async def loop_bot() -> None:
     app.add_handler(CommandHandler("remove", cmd_remove))
     app.add_handler(CommandHandler("list", cmd_list))
     app.add_handler(CommandHandler("ping", cmd_ping))
+
+    # Wrapper para logar todo update recebido
+    original_process_update = app.process_update
+
+    async def logged_process_update(update: Update) -> None:
+        if update.effective_message:
+            log.info(
+                "UPDATE RECEBIDO | chat_id=%s tipo=%s texto=%r",
+                update.effective_chat.id if update.effective_chat else "unknown",
+                update.effective_message.chat.type if update.effective_message else "unknown",
+                update.effective_message.text if update.effective_message else "(sem texto)",
+            )
+        else:
+            log.info("UPDATE RECEBIDO | (sem effective_message)")
+        await original_process_update(update)
+
+    app.process_update = logged_process_update
 
     await app.initialize()
     await app.start()
@@ -350,6 +369,23 @@ def main() -> None:
     app.add_handler(CommandHandler("remove", cmd_remove))
     app.add_handler(CommandHandler("list", cmd_list))
     app.add_handler(CommandHandler("ping", cmd_ping))
+
+    # Wrapper para logar todo update recebido
+    original_process_update = app.process_update
+
+    async def logged_process_update(update: Update) -> None:
+        if update.effective_message:
+            log.info(
+                "UPDATE RECEBIDO | chat_id=%s tipo=%s texto=%r",
+                update.effective_chat.id if update.effective_chat else "unknown",
+                update.effective_message.chat.type if update.effective_message else "unknown",
+                update.effective_message.text if update.effective_message else "(sem texto)",
+            )
+        else:
+            log.info("UPDATE RECEBIDO | (sem effective_message)")
+        await original_process_update(update)
+
+    app.process_update = logged_process_update
 
     log.info("Polling...")
     app.run_polling(allowed_updates=Update.ALL_TYPES)
