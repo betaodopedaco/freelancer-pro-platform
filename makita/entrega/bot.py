@@ -2,11 +2,8 @@
 makita — bot Telegram
 ======================
 Autenticação com invite code, gestão de palavras-chave
-e limites por plano. Conectado ao banco SQLite via db.py.
-
-Pode rodar de duas formas:
-1. Como processo separado: python -m makita.entrega.bot
-2. Como loop async no main.py: await loop_bot()
+e limites por plano. Conectado ao banco via db.py
+(SQLite local ou PostgreSQL via DATABASE_URL).
 """
 
 import asyncio
@@ -29,9 +26,9 @@ from makita.comum.db import (
     salvar_sessao,
     ler_sessao,
     DB_PATH,
+    executar,
+    buscar,
 )
-
-import aiosqlite
 
 # ── logging ───────────────────────────────────────────────────────
 
@@ -75,42 +72,38 @@ def _extrair_codigo(texto: str) -> str | None:
 
 async def _get_usuario(chat_id: str) -> dict | None:
     """Retorna dados do usuario ou None."""
-    async with aiosqlite.connect(DB_PATH) as db:
-        db.row_factory = aiosqlite.Row
-        rows = await db.execute_fetchall(
-            "SELECT * FROM usuarios WHERE telegram_chat_id = ?",
-            (chat_id,),
-        )
-        if not rows:
-            return None
-        row = rows[0]
-        return {
-            "id": row[0],
-            "telegram_chat_id": row[1],
-            "ativo": row[2],
-            "plano": row[3],
-            "max_keywords": row[4],
-        }
+    rows = await buscar(
+        "SELECT * FROM usuarios WHERE telegram_chat_id = $1",
+        (chat_id,)
+    )
+    if not rows:
+        return None
+    row = rows[0]
+    return {
+        "id": row["id"],
+        "telegram_chat_id": row["telegram_chat_id"],
+        "ativo": row["ativo"],
+        "plano": row["plano"],
+        "max_keywords": row["max_keywords"],
+    }
 
 
 async def _contar_palavras(usuario_id: int) -> int:
     """Conta palavras ativas de um usuário."""
-    async with aiosqlite.connect(DB_PATH) as db:
-        rows = await db.execute_fetchall(
-            "SELECT COUNT(*) FROM palavras_chave WHERE usuario_id = ? AND ativa = 1",
-            (usuario_id,),
-        )
-        return rows[0][0] if rows else 0
+    rows = await buscar(
+        "SELECT COUNT(*) as total FROM palavras_chave WHERE usuario_id = $1 AND ativa = 1",
+        (usuario_id,)
+    )
+    return rows[0]["total"] if rows else 0
 
 
 async def _listar_palavras(usuario_id: int) -> list[str]:
     """Lista palavras ativas de um usuário."""
-    async with aiosqlite.connect(DB_PATH) as db:
-        rows = await db.execute_fetchall(
-            "SELECT palavra FROM palavras_chave WHERE usuario_id = ? AND ativa = 1 ORDER BY palavra",
-            (usuario_id,),
-        )
-        return [r[0] for r in rows]
+    rows = await buscar(
+        "SELECT palavra FROM palavras_chave WHERE usuario_id = $1 AND ativa = 1 ORDER BY palavra",
+        (usuario_id,)
+    )
+    return [r["palavra"] for r in rows]
 
 
 # ── comandos ──────────────────────────────────────────────────────
@@ -162,13 +155,11 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     # Cria usuário
     USED_CODES.add(codigo)
-    async with aiosqlite.connect(DB_PATH) as db:
-        await db.execute(
-            "INSERT INTO usuarios (telegram_chat_id, ativo, plano, max_keywords, criado_em) "
-            "VALUES (?, 1, 'free', 3, ?)",
-            (chat_id, _agora()),
-        )
-        await db.commit()
+    await executar(
+        "INSERT INTO usuarios (telegram_chat_id, ativo, plano, max_keywords, criado_em) "
+        "VALUES ($1, 1, 'free', 3, $2)",
+        (chat_id, _agora()),
+    )
 
     await update.message.reply_text(
         "✅ Conta criada com sucesso!\n"
@@ -212,13 +203,11 @@ async def cmd_add(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     # Tenta inserir
     try:
-        async with aiosqlite.connect(DB_PATH) as db:
-            await db.execute(
-                "INSERT INTO palavras_chave (usuario_id, palavra, ativa, criado_em) "
-                "VALUES (?, ?, 1, ?)",
-                (usuario["id"], palavra.lower().strip(), _agora()),
-            )
-            await db.commit()
+        await executar(
+            "INSERT INTO palavras_chave (usuario_id, palavra, ativa, criado_em) "
+            "VALUES ($1, $2, 1, $3)",
+            (usuario["id"], palavra.lower().strip(), _agora()),
+        )
         await update.message.reply_text(
             f"✅ '{palavra}' adicionada!\n"
             f"({total + 1}/{limite} palavras usadas)"
@@ -244,13 +233,11 @@ async def cmd_remove(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
         await update.message.reply_text("Uso: /remove <palavra>")
         return
 
-    async with aiosqlite.connect(DB_PATH) as db:
-        await db.execute(
-            "UPDATE palavras_chave SET ativa = 0 "
-            "WHERE usuario_id = ? AND palavra = ? AND ativa = 1",
-            (usuario["id"], palavra.lower().strip()),
-        )
-        await db.commit()
+    await executar(
+        "UPDATE palavras_chave SET ativa = 0 "
+        "WHERE usuario_id = $1 AND palavra = $2 AND ativa = 1",
+        (usuario["id"], palavra.lower().strip()),
+    )
 
     await update.message.reply_text(f"❌ '{palavra}' removida.")
 
