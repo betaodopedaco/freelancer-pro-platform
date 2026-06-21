@@ -30,14 +30,15 @@ from makita.comum.backup import loop_backup
 from makita.comum.saude import loop_saude
 from makita.comum.healthcheck import loop_healthcheck
 from makita.coletores.facebook.session_manager import refresh_loop as fb_refresh_loop
+from makita.entrega.bot import loop_bot
 
 
 async def main():
     log.info("=" * 50)
-    log.info("  MAKITA — todos os 5 coletores + infra")
+    log.info("  MAKITA — todos os 5 coletores + infra + bot Telegram")
     log.info("  Facebook | Twitter | Reddit | Bluesky | HN")
     log.info("  + Filtro + Entregador + Backup/Expurgo/Telegram")
-    log.info("  + Saúde + Healthcheck HTTP + Renovação FB")
+    log.info("  + Saúde + Healthcheck HTTP + Renovação FB + Bot Telegram")
     log.info("=" * 50)
 
     await init_db()
@@ -55,6 +56,7 @@ async def main():
         loop_saude(),        # health check interno
         loop_healthcheck(),  # endpoint HTTP :8080/saude
         fb_refresh_loop(),   # renovação automática FB tokens
+        loop_bot(),          # bot Telegram — comandos /start, /add, /list, etc
     )
 
 

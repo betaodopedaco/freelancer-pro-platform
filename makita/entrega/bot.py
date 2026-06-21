@@ -3,8 +3,13 @@ makita — bot Telegram
 ======================
 Autenticação com invite code, gestão de palavras-chave
 e limites por plano. Conectado ao banco SQLite via db.py.
+
+Pode rodar de duas formas:
+1. Como processo separado: python -m makita.entrega.bot
+2. Como loop async no main.py: await loop_bot()
 """
 
+import asyncio
 import os
 import logging
 from datetime import datetime, timezone
@@ -279,16 +284,58 @@ async def cmd_ping(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text("funcionando")
 
 
-# ── main loop ─────────────────────────────────────────────────────
+# ── loop async para rodar junto com main.py ──────────────────────
+
+async def loop_bot() -> None:
+    """
+    Loop async do bot Telegram para rodar concorrentemente no asyncio.gather().
+    Usa a API assíncrona do python-telegram-bot v20+:
+      initialize() → start() → updater.start_polling() → mantém vivo.
+    """
+    if not TOKEN:
+        log.error("TELEGRAM_TOKEN não definido. Bot desligado.")
+        return
+
+    await init_db()
+
+    log.info(
+        "Bot Telegram iniciando (async) | %d códigos de convite disponíveis",
+        len(INVITE_CODES),
+    )
+
+    app = Application.builder().token(TOKEN).build()
+
+    app.add_handler(CommandHandler("start", cmd_start))
+    app.add_handler(CommandHandler("add", cmd_add))
+    app.add_handler(CommandHandler("remove", cmd_remove))
+    app.add_handler(CommandHandler("list", cmd_list))
+    app.add_handler(CommandHandler("ping", cmd_ping))
+
+    await app.initialize()
+    await app.start()
+    await app.updater.start_polling(allowed_updates=Update.ALL_TYPES)
+
+    log.info("Bot Telegram em polling — ouvindo comandos...")
+
+    # Mantém vivo para não fechar o loop
+    try:
+        while True:
+            await asyncio.sleep(60)
+    finally:
+        await app.updater.stop()
+        await app.stop()
+        await app.shutdown()
+
+
+# ── main loop síncrono (para execução separada) ──────────────────
 
 def main() -> None:
-    """Inicializa banco, verifica configuração e sobe o bot."""
+    """Inicializa banco, verifica configuração e sobe o bot (modo síncrono)."""
     if not TOKEN:
         log.error("TELEGRAM_TOKEN não definido no .env")
         return
 
     # Garante que tabelas existem
-    import asyncio
     asyncio.run(init_db())
 
     log.info(
