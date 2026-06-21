@@ -4,15 +4,15 @@ makita/comum/healthcheck.py
 Endpoint HTTP simples (http.server) que expõe:
   - "/saude" → health check JSON
 Usado pelo Render para monitorar se o worker está vivo.
+Roda em THREAD SEPARADA para nunca travar o event loop.
 Escuta na porta definida por HEALTHCHECK_PORT (padrão 8080).
 """
-import asyncio
 import json
 import logging
 import os
 import time
+import threading
 from http.server import HTTPServer, BaseHTTPRequestHandler
-import json as _json
 
 from makita.comum.saude import alerta_ativo
 
@@ -23,6 +23,7 @@ PORT = int(os.getenv("PORT", os.getenv("HEALTHCHECK_PORT", "8080")))
 # Timestamps dos últimos ciclos de cada coletor
 _ultimos_ciclos: dict[str, float] = {}
 _healthcheck_iniciado = 0.0
+_server_thread: threading.Thread | None = None
 
 
 def marcar_ciclo(coletor: str) -> None:
@@ -63,25 +64,37 @@ class _Handler(BaseHTTPRequestHandler):
         self.send_response(status_code)
         self.send_header("Content-Type", "application/json")
         self.end_headers()
-        self.wfile.write(_json.dumps(body, indent=2).encode())
+        self.wfile.write(json.dumps(body, indent=2).encode())
 
     def log_message(self, fmt, *args):
         # Silencia logs do HTTP server
         pass
 
 
-async def loop_healthcheck() -> None:
-    """
-    Inicia servidor HTTP na porta definida.
-    Responde 200 OK em /saude se coletores estão vivos.
-    """
-    global _healthcheck_iniciado
-    _healthcheck_iniciado = time.time()
-
-    loop = asyncio.get_event_loop()
+def _run_server() -> None:
+    """Função que roda na thread — bloqueia com serve_forever()."""
     server = HTTPServer(("0.0.0.0", PORT), _Handler)
-    log.info(f"Healthcheck HTTP ouvindo em :{PORT}/saude")
+    log.info(f"Healthcheck HTTP ouvindo em :{PORT}/saude (thread separada)")
+    server.serve_forever()
 
-    while True:
-        loop.call_soon(server.handle_request)
-        await asyncio.sleep(0.1)
+
+def start_healthcheck_thread() -> None:
+    """
+    Inicia o servidor HTTP em uma thread separada.
+    NUNCA bloqueia o event loop asyncio.
+    Chamar UMA VEZ no main.py, antes do asyncio.gather().
+    """
+    global _healthcheck_iniciado, _server_thread
+
+    if _server_thread is not None and _server_thread.is_alive():
+        log.info("Healthcheck thread já rodando.")
+        return
+
+    _healthcheck_iniciado = time.time()
+    _server_thread = threading.Thread(
+        target=_run_server,
+        daemon=True,          # morre junto com o processo principal
+        name="healthcheck-http",
+    )
+    _server_thread.start()
+    log.info(f"Healthcheck thread iniciada na porta {PORT}")

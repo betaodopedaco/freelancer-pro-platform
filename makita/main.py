@@ -28,7 +28,7 @@ from makita.processamento.filtro import loop_filtro
 from makita.processamento.entregador import loop_entregador
 from makita.comum.backup import loop_backup
 from makita.comum.saude import loop_saude
-from makita.comum.healthcheck import loop_healthcheck
+from makita.comum.healthcheck import start_healthcheck_thread
 from makita.coletores.facebook.session_manager import refresh_loop as fb_refresh_loop
 from makita.entrega.bot import loop_bot
 
@@ -43,6 +43,9 @@ async def main():
 
     await init_db()
 
+    # Healthcheck em thread separada — NUNCA trava o event loop
+    start_healthcheck_thread()
+
     log.info("Disparando todos os loops concorrentemente...")
     await asyncio.gather(
         colect_facebook(),
@@ -54,7 +57,7 @@ async def main():
         loop_entregador(),
         loop_backup(),       # backup 6h + expurgo 24h + envio Telegram
         loop_saude(),        # health check interno
-        loop_healthcheck(),  # endpoint HTTP :8080/saude
+        # loop_healthcheck() REMOVIDO — agora é thread separada (start_healthcheck_thread)
         fb_refresh_loop(),   # renovação automática FB tokens
         loop_bot(),          # bot Telegram — comandos /start, /add, /list, etc
     )
