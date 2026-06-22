@@ -72,11 +72,19 @@ async def _search_palavra(page, palavra: str) -> list[dict]:
 
     page.on("response", on_response)
 
-    await page.goto(
-        f"https://x.com/search?q={palavra}&f=live",
-        wait_until="load",
-        timeout=30000,
-    )
+    try:
+        await page.goto(
+            f"https://x.com/search?q={palavra}&f=live",
+            wait_until="load",
+            timeout=30000,
+        )
+    except Exception:
+        log.error(
+            "TIMEOUT DEBUG twitter: url=%s html=%s",
+            page.url,
+            (await page.content())[:500],
+        )
+        raise
     try:
         await page.wait_for_selector('div[data-testid="cellInnerDiv"]', timeout=10000)
     except Exception:

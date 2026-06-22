@@ -38,7 +38,15 @@ async def _search_reddit(page, palavra: str) -> list[dict]:
 
     page.on("response", lambda r: asyncio.ensure_future(on_response(r)))
 
-    await page.goto(url, wait_until="load", timeout=30000)
+    try:
+        await page.goto(url, wait_until="load", timeout=30000)
+    except Exception:
+        log.error(
+            "TIMEOUT DEBUG reddit: url=%s html=%s",
+            page.url,
+            (await page.content())[:500],
+        )
+        raise
     await asyncio.sleep(3)
     await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
     await asyncio.sleep(2)
