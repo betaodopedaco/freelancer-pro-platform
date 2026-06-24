@@ -32,11 +32,15 @@ services:
         sync: false
       - key: TWITTER_COOKIES_B64
         sync: false
+      - key: REDDIT_COOKIES_B64
+        sync: false
       - key: INVITE_CODES
         sync: false
       - key: REDIS_URL
         sync: false
       - key: DATABASE_URL
+        sync: false
+      - key: BROWSERLESS_TOKEN
         sync: false
       - key: DEBUG
         sync: false
