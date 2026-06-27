@@ -19,7 +19,7 @@ logging.basicConfig(
 log = logging.getLogger("makita")
 
 from makita.comum.db import init_db
-from makita.coletores.facebook.graphql import colect_facebook
+from makita.coletores.facebook.dom import colect_facebook
 from makita.coletores.twitter.adaptador import colect_twitter
 from makita.coletores.reddit.adaptador import colect_reddit
 from makita.coletores.bluesky.adaptador import colect_bluesky
@@ -29,7 +29,7 @@ from makita.processamento.entregador import loop_entregador
 from makita.comum.backup import loop_backup
 from makita.comum.saude import loop_saude
 from makita.comum.healthcheck import start_healthcheck_thread
-from makita.coletores.facebook.session_manager import refresh_loop as fb_refresh_loop
+
 from makita.entrega.bot import loop_bot
 
 
@@ -58,7 +58,7 @@ async def main():
         loop_backup(),       # backup 6h + expurgo 24h + envio Telegram
         loop_saude(),        # health check interno
         # loop_healthcheck() REMOVIDO — agora é thread separada (start_healthcheck_thread)
-        fb_refresh_loop(),   # renovação automática FB tokens
+
         loop_bot(),          # bot Telegram — comandos /start, /add, /list, etc
     )
 
